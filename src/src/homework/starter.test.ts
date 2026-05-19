@@ -18,6 +18,10 @@ describe('EXACT VALUE', () => {
             expect(response.data).toHaveProperty('message');
             return;
         }
+        expect(response.data).toMatchObject({
+            message: expect.any(String),
+            statusCode: expect.any(Number),
+        });
     });
 });
 

@@ -76,7 +76,7 @@ describe('SHAPE VALIDATION', () => {
 
 });
 
-describe.only('BOUNDARY VALUE ANALYSIS', () => {
+describe('BOUNDARY VALUE ANALYSIS', () => {
 
     it('username shorter than 4 chars', async () => {
         

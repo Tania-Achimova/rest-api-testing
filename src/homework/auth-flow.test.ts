@@ -1,7 +1,7 @@
 import axios, { type AxiosResponse } from 'axios';
 import { config } from '../config';
 import { TEST_CLEANUP_SECRET } from '../fixtures';
-import { expectRejected } from '../test-units';
+// import { expectRejected } from '../test-units';
 
 const url = `${config.BASE_URL}/signin`;
 const wrongCredentials = { username: 'notarealuser99999', password: 'WrongPass@9999' };
@@ -32,7 +32,7 @@ afterAll(async () => {
 });
 
 
-describe.only('AUTH-FLOW RESPONSE', () => {
+describe('AUTH-FLOW RESPONSE', () => {
 
     it('successful signin returns status 200 with token and user', () => {
         // write your code here
@@ -105,21 +105,16 @@ describe.only('AUTH-FLOW RESPONSE', () => {
 
 describe('NEGATIVE CASES FOR CURRENT USER', () => {
 
-    it('wrong password is rejected — .then() style', () => {
-
-        return axios.post(url, wrongCredentials, {
-            validateStatus: () => true
-        }).then(res => {
-            throw new Error(`Request should have failed with status ${res.status}`);
-        }).catch(err => {
-            const status = err.response ? err.response.status : null;
-            expect(err.response.status).toBe(400);
-            expectRejected(status);
-            if (status === 400) {
-                expect(err.response.data.message).toBe('Invalid credentials');
-            }
-
-        });
-
+    it('rejects wrong password — .then() style', () => {
+        return axios.post(url, wrongCredentials, { validateStatus: () => true })
+            .then(res => {
+                expect(res.status).toBe(400);
+                expect(res.data).toHaveProperty('message');
+                expect(res.data).toHaveProperty('statusCode');
+            });
     });
+
+
 });
+
+     

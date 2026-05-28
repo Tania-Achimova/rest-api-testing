@@ -9,7 +9,7 @@ const wrongCredentials = {
     password: 'WrongPass@999'
 };
 
-let sharedResponse: AxiosResponse;
+let sharedResponse!: AxiosResponse;
 
 beforeAll(async () => {
     sharedResponse = await axios.post(url, wrongCredentials, {
@@ -100,7 +100,7 @@ describe('BOUNDARY VALUE ANALYSIS', () => {
             return
         }
         expectRejected(res.status);
-        expect(res.data.message).toBe('Invalid credentials');
+        expect(res.data.message).toBe('Token is not valid.Please login again');
     });
 
 

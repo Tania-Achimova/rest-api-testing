@@ -108,3 +108,12 @@ describe('STATUS CODE ASSERTIONS', () => {
 
     });
 });
+
+describe('RESPONSE STRUCTURE ASSERTIONS', () => {
+
+    it('statusCode is type number and message is truthy', () => {
+        if (response.status === 429) return
+        expect(typeof response.data.statusCode).toBe('number');
+        expect(response.data.message).toBeTruthy();
+    });
+});

@@ -41,7 +41,7 @@ describe('AUTH-FLOW RESPONSE', () => {
         expect(response.data).toHaveProperty('user');
         expect(response.data.message).toBe('User login successfully');
         expect(response.data.token).toBeDefined();
-        expect('response.data.user').toBeDefined();
+        expect(response.data.user).toBeDefined();
     });
 
     it('token has valid JWT format', () => {
@@ -106,11 +106,15 @@ describe('AUTH-FLOW RESPONSE', () => {
 describe('NEGATIVE CASES FOR CURRENT USER', () => {
 
     it('rejects wrong password — .then() style', () => {
-        return axios.post(url, wrongCredentials, { validateStatus: () => true })
+        return axios.post(url, wrongCredentials, { 
+            validateStatus: () => true 
+        })
             .then(res => {
                 expect(res.status).toBe(400);
                 expect(res.data).toHaveProperty('message');
                 expect(res.data).toHaveProperty('statusCode');
+            }).finally(() => {
+                // console.log('Response for wrong credentials:', res);
             });
     });
 

@@ -12,8 +12,8 @@ export default defineConfig({
         fileParallelism: false,
         env: {
             BASE_URL: process.env.BASE_URL ?? '',
-            TEST_USERNAME: process.env.TEST_USERNAME ?? '',
-            TEST_PASSWORD: process.env.TEST_PASSWORD ?? '',
+            TEST_USERNAME: process.env.TEST_USER_USERNAME ?? '',
+            TEST_PASSWORD: process.env.TEST_USER_PASSWORD ?? '',
         },
     },
 });

@@ -55,11 +55,36 @@ describe('SIGNUP FLOW RESPONSE', () => {
         });
     });
 
+    it('cleanup endpoint returns 403 with wrong secret — .then() style', () => {
+        // write your code 
+        return axios.delete(cleanupUrl(authId), {
+            headers: { 'x-test-secret': 'wrong-secret' },
+            validateStatus: () => true,
+        }).then(res => {
+            expect(res.status).toBe(403);
+        });
+    });
+
+    it('email matches email format regex — toMatch', () => {
+        // write your code here
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        expect(response.data.user.email).toMatch(emailRegex);
+    });
+
+    it('token is a valid JWT — toSatisfy with custom predicate', () => {
+        // write your code here
+        expect(response.data.token).toSatisfy((t: string) => t.split('.').length === 3);
+    });
+});
+
+describe('SIGNUP FLOW ERROR HANDLING', () => {
+
     it('duplicate email returns 400', async () => {
         // write your code here
         const sharedEmail = faker.internet.email().toLowerCase();
+        
         await axios.post(signupUrl, {
-            username: `vitest${faker.string.alphanumeric(8).toLowerCase()}`,
+            username: 'TestCodeUser',
             email: sharedEmail,
             password: config.TEST_USER_PASSWORD,
             avatarColor: TEST_AVATAR_COLOR,
@@ -67,12 +92,13 @@ describe('SIGNUP FLOW RESPONSE', () => {
         }, { validateStatus: () => true });
 
         const duplicateResponse = await axios.post(signupUrl, {
-            username: `vitest${faker.string.alphanumeric(8).toLowerCase()}`,
+            username: 'TestCodeUser',
             email: sharedEmail,
             password: config.TEST_USER_PASSWORD,
             avatarColor: TEST_AVATAR_COLOR,
             avatarImage: TEST_AVATAR_IMAGE,
         }, { validateStatus: () => true });
+
         console.log('Duplicate email response:', duplicateResponse.status, duplicateResponse.data);
         expectRejected(duplicateResponse.status)
         if (duplicateResponse.status === 400) {
@@ -95,24 +121,4 @@ describe('SIGNUP FLOW RESPONSE', () => {
         }
     });
 
-    it('cleanup endpoint returns 403 with wrong secret — .then() style', () => {
-        // write your code 
-        return axios.delete(cleanupUrl(authId), {
-            headers: { 'x-test-secret': 'wrong-secret' },
-            validateStatus: () => true,
-        }).then(res => {
-            expect(res.status).toBe(403);
-        });
-    });
-
-    it('email matches email format regex — toMatch', () => {
-        // write your code here
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        expect(response.data.user.email).toMatch(emailRegex);
-    });
-
-    it('token is a valid JWT — toSatisfy with custom predicate', () => {
-        // write your code here
-        expect(response.data.token).toSatisfy((t: string) => t.split('.').length === 3);
-    });
 });

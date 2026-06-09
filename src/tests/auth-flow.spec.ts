@@ -6,7 +6,7 @@ import { expectRejected } from '../test-units';
 
 const url = `${config.BASE_URL}/signin`;
 const signOutUrl = `${config.BASE_URL}/auth/signout`;
-const currentUserUrl = `${config.BASE_URL}/auth/currentuser`;
+const currentUserUrl = `${config.BASE_URL}/currentuser`;
 
 const credentials = {
     username: config.TEST_USER_USERNAME,
@@ -118,9 +118,10 @@ describe('USER OBJECT', () => {
         expect(followersCount).toBeGreaterThanOrEqual(0);
         expect(followingCount).toBeGreaterThanOrEqual(0);
     });
+
 });
 
-describe('AUTHENTICATED REQUESTS', () => {
+describe.only('AUTHENTICATED REQUESTS', () => {
 
     it('GET/ currentuser with cookie return 200', async () => {
 
@@ -128,6 +129,7 @@ describe('AUTHENTICATED REQUESTS', () => {
             headers: { Cookie: sessionCookie },
             validateStatus: () => true,
         });
+        console.log('Current user response:', response.data);
         expect(response.status).toBe(200);
     });
 

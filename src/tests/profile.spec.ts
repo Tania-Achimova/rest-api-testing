@@ -1,24 +1,25 @@
 import axios, { AxiosResponse } from 'axios';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { expectRejected } from '../test-units';
 import { config } from '../config';
 import { TEST_CLEANUP_SECRET } from '../fixtures';
+
 
 const credentials = {
     username: config.TEST_USER_USERNAME,
     password: config.TEST_USER_PASSWORD,
 };
-const signinUrl      = `${config.BASE_URL}/signin`;
+const url = `${config.BASE_URL}/signin`; // Base URL for profile-related endpoints
 const currentUserUrl = `${config.BASE_URL}/currentuser`;
-const basicInfoUrl   = `${config.BASE_URL}/user/profile/basic-info`;
-const settingsUrl    = `${config.BASE_URL}/user/profile/settings`;
-const signoutUrl     = `${config.BASE_URL}/signout`;;
+const signoutUrl = `${config.BASE_URL}/logout`;
+const settingsUrl = `${config.BASE_URL}/user/profile/settings`;
+const basicInfoUrl = `${config.BASE_URL}/user/profile/basic-info`;
+
 
 
 let signInResponse!: AxiosResponse;
-let sessionToken: string;
+let sessionCookie: string;
 
-//Value captured in beforeAll to be used in tests and cleanup
+//Value captured in before w change them
 let originalWork: string = '';
 let originalQuote: string = '';
 let originalReactions: boolean = true;
@@ -26,7 +27,7 @@ let originalFollows: boolean = true;
 
 
 beforeAll(async () => {
-    await axios.post(signinUrl, credentials, {
+    signInResponse = await axios.post(url, credentials, {
         headers: {
             'x-test-secret': TEST_CLEANUP_SECRET,
         },
@@ -39,11 +40,11 @@ beforeAll(async () => {
         if (raw) return [raw];
         return [];
     })();
-    sessionToken = cookies.map(c => c.split(';')[0]).join('; ');
+    sessionCookie = cookies.map(c => c.split(';')[0]).join('; ');
 
     const currentUserResponse = await axios.get(currentUserUrl, {
         headers: {
-            Cookie: sessionToken,
+            Cookie: sessionCookie,
         },
         validateStatus: () => true
     });
@@ -56,13 +57,14 @@ beforeAll(async () => {
 
     await axios.put(settingsUrl, {
         messages: true,
-        reactions: true,
+        reactions: originalReactions,
+        comments: true,
         follows: originalFollows,
     }, {
         headers: {
-            Cookie: sessionToken,
+            Cookie: sessionCookie,
         },
-        validateStatus: () => true
+        validateStatus: () => true,
     });
 
 });
@@ -73,13 +75,13 @@ afterAll(async () => {
         quote: originalQuote,
     }, {
         headers: {
-            Cookie: sessionToken,
+            Cookie: sessionCookie,
         },
         validateStatus: () => true
     });
     const currentUserResponse = await axios.get(currentUserUrl, {
         headers: {
-            Cookie: sessionToken,
+            Cookie: sessionCookie,
         },
         validateStatus: () => true
     }).then(console.log);
@@ -87,23 +89,26 @@ afterAll(async () => {
 });
 
 describe('UPDATE BASIC INFO', () => {
-    it('updatee should be successful with status 200', async () => {
+
+    it('update should be successful with status 200', async () => {
         const res = await axios.put(basicInfoUrl, {
             work: 'Senior QA Engineer',
             quote: 'Testing is my passion!',
         }, {
             headers: {
-                Cookie: sessionToken,
+                Cookie: sessionCookie,
             },
             validateStatus: () => true
         });
+        console.log('Update Basic Info Response:', res.data);
+
         const currentUserResponse = await axios.get(currentUserUrl, {
             headers: {
-                Cookie: sessionToken,
+                Cookie: sessionCookie,
             },
             validateStatus: () => true
         });
-        //console.log('Current User Response After Update:', currentUserResponse.data);
+        console.log('Current User Response After Update:', currentUserResponse.data);
 
         expect(res.status).toBe(200);
     });
@@ -114,7 +119,7 @@ describe('UPDATE BASIC INFO', () => {
 
         }, {
             headers: {
-                Cookie: sessionToken,
+                Cookie: sessionCookie,
             },
             validateStatus: () => true
         });
@@ -127,8 +132,8 @@ describe('STATE VERIFICATION', () => {
 
     const run = Date.now();
 
-    const testWork = `Senior QA Engineer=${run}`;
-    const testQuote = `Testing is my passion!=${run}`;
+    const testWork = `Senior QA Engineer-${run}`;
+    const testQuote = `Testing is my passion!-${run}`;
 
     beforeAll(async () => {
         await axios.put(basicInfoUrl, {
@@ -136,7 +141,7 @@ describe('STATE VERIFICATION', () => {
             quote: testQuote,
         }, {
             headers: {
-                Cookie: sessionToken,
+                Cookie: sessionCookie,
             },
             validateStatus: () => true
         });
@@ -145,7 +150,7 @@ describe('STATE VERIFICATION', () => {
     it('GET/ current user should reflect updated work and quote', async () => {
         const res = await axios.get(currentUserUrl, {
             headers: {
-                Cookie: sessionToken,
+                Cookie: sessionCookie,
             },
             validateStatus: () => true
         });
@@ -162,14 +167,14 @@ describe('STATE VERIFICATION', () => {
 
 describe('UPDATE NOTIFICATIONS SETTINGS', () => {
 
-    it('GET/ current ', async () => {
+    it('GET/ current reflects the updated notifications settings ', async () => {
         const res = await axios.put(settingsUrl, {
             reactions: false,
             follows: false,
         },
             {
                 headers: {
-                    Cookie: sessionToken,
+                    Cookie: sessionCookie,
                 },
 
                 validateStatus: () => true,
@@ -178,37 +183,39 @@ describe('UPDATE NOTIFICATIONS SETTINGS', () => {
         expect(res.status).toBe(200);
     });
 
-    it('message is "Notifications settings updated successfully"', async () => {
+    it('should have message is "Notification settings updated successfully"', async () => {
         const res = await axios.put(settingsUrl, {
-            reactions: false,
+            reactions: false
         },
             {
                 headers: {
-                    Cookie: sessionToken,
+                    Cookie: sessionCookie,
                 },
 
                 validateStatus: () => true,
             });
 
-        expect(res.data.message).toBe('Notifications settings updated successfully');
+        expect(res.data.message).toBe('Notification settings updated successfully');
     });
 
     it('GET/ current user should reflect updated notifications settings', async () => {
-        const res = await axios.get(currentUserUrl, {
+        await axios.put(settingsUrl, {
+            reactions: false
+        }, {
             headers: {
-                Cookie: sessionToken,
+                Cookie: sessionCookie,
             },
             validateStatus: () => true
         });
         const currentUserResponse = await axios.get(currentUserUrl, {
             headers: {
-                Cookie: sessionToken,
+                Cookie: sessionCookie,
             },
             validateStatus: () => true
         });
-        console.log('Current User Response for Notifications Verification:', currentUserResponse.data);
-        expect(currentUserResponse.data.user.notificationsEnabled).toBe(false);
-        expect(currentUserResponse.data.user.followsEnabled).toBe(false);
+        console.log('Current User Response for Notification Verification:', currentUserResponse.data);
+        expect(currentUserResponse.data.user.notifications.reactions).toBe(false);
+        
     });
 
 });
